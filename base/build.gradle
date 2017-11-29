@@ -1,0 +1,79 @@
+apply plugin: 'com.android.feature'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+
+def apiFile = file("api.properties")
+def apiProps = new Properties()
+if (apiFile.exists()) {
+    apiProps.load(new FileInputStream(apiFile))
+}
+
+android {
+    compileSdkVersion buildVersions.compileSdk
+    buildToolsVersion buildVersions.buildTools
+    baseFeature true
+    defaultConfig {
+        minSdkVersion buildVersions.minSdk
+        targetSdkVersion buildVersions.targetSdk
+        versionCode 1
+        versionName "1.0"
+        multiDexEnabled true
+        buildConfigField 'String', 'REDDIT_ENDPOINT', apiProps['REDDIT_URL']
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    dexOptions {
+        jumboMode true
+        javaMaxHeapSize "4g"
+    }
+
+    configurations.all {
+        resolutionStrategy.force 'com.google.code.findbugs:jsr305:1.3.9'
+    }
+}
+
+dependencies {
+    api(
+            deps.support.appcompat,
+            deps.support.constraintLayout,
+            deps.dagger.android,
+            deps.dagger.support,
+            deps.dagger.base,
+            deps.retrofit.base,
+            deps.retrofit.gson,
+            deps.retrofit.rxadapter,
+            deps.rxjava.java,
+            deps.rxjava.android,
+            deps.rxjava.relay,
+            deps.okhttp.logging,
+            deps.okhttp.base,
+            deps.gson,
+            deps.timber,
+            deps.glide,
+            deps.kotlin.stdlib
+    )
+    kapt(
+            deps.dagger.androidProcessor,
+            deps.dagger.compiler
+    )
+    testImplementation(
+            deps.unitTest.junit
+    )
+    annotationProcessor(
+            "com.google.dagger:dagger-compiler:$buildVersions.daggerVersion"
+    )
+    application project(':app')
+    feature project(':redditdetail')
+    feature project(":redditlist")
+}
